@@ -23,6 +23,7 @@ import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.example.sistemadeproyectosuaq.ui.kanban.KanbanScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.TaskDetail
 import com.example.sistemadeproyectosuaq.ui.login.LoginScreen
+import com.example.sistemadeproyectosuaq.ui.login.LoginSuccessData
 import com.example.sistemadeproyectosuaq.ui.profile.UserAdminScreen
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
@@ -41,25 +42,31 @@ class MainActivity : ComponentActivity() {
 @PreviewScreenSizes
 @Composable
 fun SistemaDeProyectosUAQApp() {
-    var isLoggedIn by rememberSaveable { mutableStateOf(false) }
+    var userRole by rememberSaveable { mutableStateOf<String?>(null) }
     var selectedTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
-    if (isLoggedIn) {
+    if (userRole != null) {
+        val availableDestinations = if (userRole == "Admin") {
+            AppDestinations.entries
+        } else {
+            AppDestinations.entries.filter { it != AppDestinations.PROFILE }
+        }
+
         NavigationSuiteScaffold(
             navigationSuiteItems = {
-                AppDestinations.entries.forEach {
+                availableDestinations.forEach { destination ->
                     item(
                         icon = {
                             Icon(
-                                it.icon,
-                                contentDescription = it.label
+                                destination.icon,
+                                contentDescription = destination.label
                             )
                         },
-                        label = { Text(it.label) },
-                        selected = it == currentDestination,
+                        label = { Text(destination.label) },
+                        selected = destination == currentDestination,
                         onClick = {
-                            currentDestination = it
+                            currentDestination = destination
                             selectedTaskId = null // Reset task detail when switching tabs
                         }
                     )
@@ -75,6 +82,7 @@ fun SistemaDeProyectosUAQApp() {
                             TaskDetail(taskId = selectedTaskId!!, onNavigateBack = { selectedTaskId = null })
                         }
                     }
+
                     AppDestinations.PROFILE -> {
                         UserAdminScreen(onNavigateBack = { currentDestination = AppDestinations.HOME })
                     }
@@ -82,7 +90,9 @@ fun SistemaDeProyectosUAQApp() {
             }
         }
     } else {
-        LoginScreen(onLoginClicked = { isLoggedIn = true })
+        LoginScreen(onLoginSuccess = { successData ->
+            userRole = successData.role
+        })
     }
 }
 
