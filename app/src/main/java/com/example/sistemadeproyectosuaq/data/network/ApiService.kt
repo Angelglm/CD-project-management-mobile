@@ -20,7 +20,6 @@ import javax.net.ssl.X509TrustManager
 private const val BASE_URL = "https://pmaster.elcilantro.site/api/"
 
 // --- Development Only: Unsafe OkHttpClient to trust all certificates ---
-// WARNING: This is insecure and should not be used in production.
 @SuppressLint("CustomX509TrustManager")
 private fun createUnsafeOkHttpClient(): OkHttpClient {
     val trustAllCerts = arrayOf<TrustManager>(
@@ -39,9 +38,10 @@ private fun createUnsafeOkHttpClient(): OkHttpClient {
     return OkHttpClient.Builder()
         .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
-        .connectTimeout(30, TimeUnit.SECONDS) // Added connect timeout
-        .readTimeout(30, TimeUnit.SECONDS)    // Added read timeout
-        .writeTimeout(30, TimeUnit.SECONDS)   // Added write timeout
+        .addInterceptor(AuthInterceptor()) // Add the authenticator
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 }
 // ----------------------------------------------------------------------
@@ -50,16 +50,37 @@ private val json = Json { ignoreUnknownKeys = true }
 
 private val retrofit = Retrofit.Builder()
     .baseUrl(BASE_URL)
-    .client(createUnsafeOkHttpClient()) // Use the unsafe client
+    .client(createUnsafeOkHttpClient()) 
     .addConverterFactory(json.asConverterFactory(MediaType.parse("application/json")!!))
     .build()
 
 interface ApiService {
+    // Auth
     @POST("login")
     suspend fun login(@Body request: LoginRequest): LoginResponse
 
     @GET("login/getToken")
     suspend fun getToken(@Header("user_key") userKey: String): TokenResponse
+
+    // Projects
+    @GET("project")
+    suspend fun getProjects(): ProjectsResponse
+
+    @POST("project")
+    suspend fun createProject(@Body request: CreateProjectRequest): CreateProjectResponse
+
+    @GET("project/getMembers")
+    suspend fun getProjectMembers(@Header("project_id") projectId: String): ProjectMembersResponse
+
+    @POST("project/addMember")
+    suspend fun addProjectMember(@Body request: AddMemberRequest): MessageResponse
+    
+    // Tasks
+    @GET("project/getTasks")
+    suspend fun getTasks(
+        @Header("project_id") projectId: String,
+        @Header("module_id") moduleId: String
+    ): TasksResponse
 }
 
 object ApiClient {

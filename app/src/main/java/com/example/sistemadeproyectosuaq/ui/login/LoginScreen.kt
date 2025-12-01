@@ -74,7 +74,7 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
             CircularProgressIndicator()
         } else {
             Button(
-                onClick = { loginViewModel.login(email, password) },
+                onClick = { loginViewModel.login(email.trim(), password.trim()) }, // Trim whitespace
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF061B2E)
                 )
