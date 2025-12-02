@@ -34,7 +34,23 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
     var password by remember { mutableStateOf("") }
     val uiState = loginViewModel.uiState
 
-    // Handle navigation on successful login
+    // Validaciones locales para email y contraseña
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+
+    // Expresión regular para validar el correo electrónico
+    fun isEmailValid(email: String): Boolean {
+        val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        return email.matches(Regex(emailPattern))
+    }
+
+    // Expresión regular para validar contraseñas
+    fun isPasswordValid(password: String): Boolean {
+        val passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>_]).{6,}$"
+        return password.matches(Regex(passwordPattern))
+    }
+
+    // Gestionar la navegación tras un inicio de sesión exitoso
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
             onLoginSuccess(uiState.data)
@@ -52,32 +68,51 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         Text(text = "INICIO DE SESION")
         Spacer(modifier = Modifier.height(24.dp))
 
+        // Email input con validación
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
+            onValueChange = { 
+                email = it 
+                emailError = if (isEmailValid(it)) "" else "Correo electrónico no válido"
+            },
             label = { Text("Correo Electronico o usuario") },
-            isError = uiState is LoginUiState.Error
+            isError = emailError.isNotEmpty()
         )
+        if (emailError.isNotEmpty()) {
+            Text(text = emailError, color = Color.Red, fontSize = 12.sp)
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
+        // Password input con validación
         OutlinedTextField(
             value = password,
-            onValueChange = { password = it },
+            onValueChange = { 
+                password = it 
+                passwordError = if (isPasswordValid(it)) "" else "La contraseña debe tener al menos 6 caracteres, una mayúscula, un número y un carácter especial"
+            },
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = uiState is LoginUiState.Error
+            isError = passwordError.isNotEmpty()
         )
+        if (passwordError.isNotEmpty()) {
+            Text(text = passwordError, color = Color.Red, fontSize = 12.sp)
+        }
         Spacer(modifier = Modifier.height(16.dp))
 
         if (uiState is LoginUiState.Loading) {
             CircularProgressIndicator()
         } else {
             Button(
-                onClick = { loginViewModel.login(email.trim(), password.trim()) }, // Trim whitespace
+                onClick = { 
+                    if (emailError.isEmpty() && passwordError.isEmpty()) {
+                        loginViewModel.login(email.trim(), password.trim()) // Trim whitespace
+                    }
+                }, 
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF061B2E)
-                )
+                ),
+                enabled = emailError.isEmpty() && passwordError.isEmpty()
             ) {
                 Text("INICIAR")
             }
@@ -94,7 +129,6 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
 @Composable
 fun LoginScreenPreview() {
     SistemaDeProyectosUAQTheme {
-        // In preview, we don't have a real ViewModel, so we pass a dummy lambda.
         LoginScreen(onLoginSuccess = {})
     }
 }
