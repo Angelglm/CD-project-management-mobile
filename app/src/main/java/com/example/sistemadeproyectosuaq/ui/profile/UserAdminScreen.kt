@@ -123,6 +123,30 @@ private fun AddUserDialog(
     val roles = listOf("Admin", "User", "Cliente")
     var isRolesMenuExpanded by remember { mutableStateOf(false) }
     var selectedRole by remember { mutableStateOf(roles[0]) }
+    var emailError by remember { mutableStateOf("") }
+    var passwordError by remember { mutableStateOf("") }
+
+    // Expresión regular para validar el correo electrónico
+    fun isEmailValid(email: String): Boolean {
+        val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        return email.matches(Regex(emailPattern))
+    }
+
+    // Expresión regular para validar contraseñas: al menos una mayúscula, un número, un carácter especial y longitud mínima de 6 caracteres.
+    fun isPasswordValid(password: String): Boolean {
+        val passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>_]).{6,}$"
+        return password.matches(Regex(passwordPattern))
+    }
+
+    fun passwordErrorMessage(password: String): String {
+        return when {
+            password.length < 6 -> "La contraseña debe tener al menos 6 caracteres."
+            !password.contains(Regex("[A-Z]")) -> "La contraseña debe tener al menos una mayúscula."
+            !password.contains(Regex("[0-9]")) -> "La contraseña debe tener al menos un número."
+            !password.contains(Regex("[!@#$%^&*(),.?\":{}|<>_]")) -> "La contraseña debe tener al menos un carácter especial."
+            else -> ""
+        }
+    }
 
     AlertDialog(
         onDismissRequest = onDismissRequest,
@@ -136,17 +160,39 @@ private fun AddUserDialog(
                 )
                 OutlinedTextField(
                     value = email,
-                    onValueChange = { email = it },
+                    onValueChange = {
+                        email = it
+                        emailError = if (isEmailValid(it)) "" else "Correo electrónico no válido"
+                    },
                     label = { Text("Correo Electrónico") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    isError = emailError.isNotEmpty()
                 )
+                if (emailError.isNotEmpty()) {
+                    Text(
+                        text = emailError,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { password = it },
+                    onValueChange = { 
+                        password = it
+                        passwordError = passwordErrorMessage(it)  
+                    },
                     label = { Text("Contraseña") },
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    isError = passwordError.isNotEmpty()
                 )
+                if (passwordError.isNotEmpty()) {
+                    Text(
+                        text = passwordError,
+                        color = Color.Red,
+                        fontSize = 12.sp
+                    )
+                }
 
                 ExposedDropdownMenuBox(
                     expanded = isRolesMenuExpanded,
@@ -180,7 +226,9 @@ private fun AddUserDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    onConfirmation(name, email, selectedRole)
+                    if (isEmailValid(email) && passwordError.isEmpty()) {
+                        onConfirmation(name, email, selectedRole)
+                    }
                 }
             ) {
                 Text("Confirmar")
