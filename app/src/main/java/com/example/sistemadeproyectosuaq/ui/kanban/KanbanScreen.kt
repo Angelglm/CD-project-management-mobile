@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,6 +20,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -29,6 +31,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sistemadeproyectosuaq.data.network.ApiTask
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
 enum class TaskStatus(val title: String, val color: Color) {
@@ -41,21 +45,37 @@ data class Task(val id: Int, val title: String, val description: String, val sta
 
 @Composable
 fun KanbanScreen(
-    onTaskClick: (Task) -> Unit
+    onTaskClick: (Task) -> Unit,
+    viewModel: KanbanViewModel = viewModel()
 ) {
-    val scrollState = rememberScrollState()
-    val tasks = listOf(
-        Task(1, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.TODO),
-        Task(2, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.TODO),
-        Task(3, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.TODO),
-        Task(4, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.IN_PROGRESS),
-        Task(5, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.IN_PROGRESS),
-        Task(6, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.DONE)
-    )
+    val uiState = viewModel.uiState
 
-    Column(modifier = Modifier.padding(16.dp)) {
+    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+        when (uiState) {
+            is KanbanUiState.Loading -> {
+                CircularProgressIndicator()
+            }
+            is KanbanUiState.Error -> {
+                Text(text = uiState.message, color = Color.Red)
+            }
+            is KanbanUiState.Success -> {
+                val projectName = uiState.data.project.name
+                val tasks = uiState.data.tasks.map { mapApiTaskToTask(it) }
+                KanbanView(projectName = projectName, tasks = tasks, onTaskClick = onTaskClick)
+            }
+        }
+    }
+}
+
+@Composable
+fun KanbanView(projectName: String, tasks: List<Task>, onTaskClick: (Task) -> Unit) {
+    val scrollState = rememberScrollState()
+
+    Column(modifier = Modifier
+        .fillMaxSize()
+        .padding(16.dp)) {
         Text(
-            text = "NOMBRE DEL PROYECTO",
+            text = projectName,
             fontSize = 20.sp,
             fontWeight = FontWeight.Bold,
             modifier = Modifier.padding(top = 20.dp)
@@ -72,6 +92,21 @@ fun KanbanScreen(
             }
         }
     }
+}
+
+private fun mapApiTaskToTask(apiTask: ApiTask): Task {
+    val status = when (apiTask.status) {
+        "1" -> TaskStatus.TODO
+        "2" -> TaskStatus.IN_PROGRESS
+        "3" -> TaskStatus.DONE
+        else -> TaskStatus.TODO // Default case
+    }
+    return Task(
+        id = apiTask.id,
+        title = apiTask.title,
+        description = apiTask.description,
+        status = status
+    )
 }
 
 @Composable
@@ -120,6 +155,6 @@ fun TaskCard(task: Task, onTaskClick: (Task) -> Unit) {
 @Composable
 fun KanbanScreenPreview() {
     SistemaDeProyectosUAQTheme {
-        KanbanScreen(onTaskClick = {})
+        KanbanView(projectName = "PREVIEW PROJECT", tasks = listOf(), onTaskClick = {})
     }
 }

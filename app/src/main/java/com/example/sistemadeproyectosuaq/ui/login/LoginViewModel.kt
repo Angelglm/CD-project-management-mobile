@@ -8,7 +8,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.sistemadeproyectosuaq.data.network.ApiClient
 import com.example.sistemadeproyectosuaq.data.network.LoginRequest
-import com.example.sistemadeproyectosuaq.data.network.TokenResponse
+import com.example.sistemadeproyectosuaq.data.network.SessionManager
 import kotlinx.coroutines.launch
 import kotlinx.serialization.SerializationException
 import retrofit2.HttpException
@@ -41,6 +41,9 @@ class LoginViewModel : ViewModel() {
                 val loginResponse = ApiClient.service.login(LoginRequest(email, password))
 
                 val tokenResponse = ApiClient.service.getToken(loginResponse.userKey)
+
+                // Save the token
+                SessionManager.onLoginSuccess(tokenResponse.token)
 
                 val successData = LoginSuccessData(
                     userId = loginResponse.userID,

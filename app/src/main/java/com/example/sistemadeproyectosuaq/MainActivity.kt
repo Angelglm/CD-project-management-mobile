@@ -7,6 +7,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
@@ -20,6 +22,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import com.example.sistemadeproyectosuaq.ui.add_project.AddProjectScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.KanbanScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.TaskDetail
 import com.example.sistemadeproyectosuaq.ui.login.LoginScreen
@@ -50,7 +53,7 @@ fun SistemaDeProyectosUAQApp() {
         val availableDestinations = if (userRole == "Admin") {
             AppDestinations.entries
         } else {
-            AppDestinations.entries.filter { it != AppDestinations.PROFILE }
+            AppDestinations.entries.filter { it.isAdminOnly == false }
         }
 
         NavigationSuiteScaffold(
@@ -82,7 +85,12 @@ fun SistemaDeProyectosUAQApp() {
                             TaskDetail(taskId = selectedTaskId!!, onNavigateBack = { selectedTaskId = null })
                         }
                     }
-
+                    AppDestinations.PROJECT_MANAGEMENT -> {
+                        // Placeholder for ProjectListScreen
+                    }
+                    AppDestinations.ADD_PROJECT -> {
+                        AddProjectScreen(onProjectCreated = { currentDestination = AppDestinations.HOME })
+                    }
                     AppDestinations.PROFILE -> {
                         UserAdminScreen(onNavigateBack = { currentDestination = AppDestinations.HOME })
                     }
@@ -99,7 +107,10 @@ fun SistemaDeProyectosUAQApp() {
 enum class AppDestinations(
     val label: String,
     val icon: ImageVector,
+    val isAdminOnly: Boolean = false
 ) {
     HOME("Home", Icons.Default.Home),
-    PROFILE("Profile", Icons.Default.AccountBox),
+    PROJECT_MANAGEMENT("Projects", Icons.Default.Build, true),
+    ADD_PROJECT("Add Project", Icons.Default.Add, true),
+    PROFILE("Profile", Icons.Default.AccountBox, true),
 }
