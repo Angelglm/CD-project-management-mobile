@@ -38,7 +38,7 @@ private fun createUnsafeOkHttpClient(): OkHttpClient {
     return OkHttpClient.Builder()
         .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
-        .addInterceptor(AuthInterceptor()) // Add the authenticator
+        .addInterceptor(AuthInterceptor())
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
         .writeTimeout(30, TimeUnit.SECONDS)

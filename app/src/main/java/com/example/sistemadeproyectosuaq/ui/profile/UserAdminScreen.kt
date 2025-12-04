@@ -46,11 +46,7 @@ data class AdminUser(val id: Int, val name: String, val email: String, val role:
 @Composable
 fun UserAdminScreen(onNavigateBack: () -> Unit) {
     var users by remember {
-        mutableStateOf(listOf(
-            AdminUser(1, "NOMBRE", "correo@example.com", "Admin"),
-            AdminUser(2, "NOMBRE", "correo2@example.com", "User"),
-            AdminUser(3, "NOMBRE", "correo3@example.com", "User")
-        ))
+        mutableStateOf(emptyList<AdminUser>())
     }
     var showAddUserDialog by remember { mutableStateOf(false) }
 
