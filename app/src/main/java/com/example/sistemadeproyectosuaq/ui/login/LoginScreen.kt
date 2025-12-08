@@ -36,18 +36,11 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
 
     // Validaciones locales para email y contraseña
     var emailError by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf("") }
 
     // Expresión regular para validar el correo electrónico
     fun isEmailValid(email: String): Boolean {
         val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
         return email.matches(Regex(emailPattern))
-    }
-
-    // Expresión regular para validar contraseñas
-    fun isPasswordValid(password: String): Boolean {
-        val passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>_]).{6,}$"
-        return password.matches(Regex(passwordPattern))
     }
 
     // Gestionar la navegación tras un inicio de sesión exitoso
@@ -83,21 +76,14 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Password input con validación
+        // Password input 
         OutlinedTextField(
             value = password,
-            onValueChange = { 
-                password = it 
-                passwordError = if (isPasswordValid(it)) "" else "La contraseña debe tener al menos 6 caracteres, una mayúscula, un número y un carácter especial"
-            },
+            onValueChange = { password = it },
             label = { Text("Contraseña") },
             visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-            isError = passwordError.isNotEmpty()
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
         )
-        if (passwordError.isNotEmpty()) {
-            Text(text = passwordError, color = Color.Red, fontSize = 12.sp)
-        }
         Spacer(modifier = Modifier.height(16.dp))
 
         if (uiState is LoginUiState.Loading) {
@@ -105,14 +91,14 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         } else {
             Button(
                 onClick = { 
-                    if (emailError.isEmpty() && passwordError.isEmpty()) {
+                    if (emailError.isEmpty()) {
                         loginViewModel.login(email.trim(), password.trim()) // Trim whitespace
                     }
                 }, 
                 colors = ButtonDefaults.buttonColors(
                     containerColor = Color(0xFF061B2E)
                 ),
-                enabled = emailError.isEmpty() && passwordError.isEmpty()
+                enabled = emailError.isEmpty()
             ) {
                 Text("INICIAR")
             }
