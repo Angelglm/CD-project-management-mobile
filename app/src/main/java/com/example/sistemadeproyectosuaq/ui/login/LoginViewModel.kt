@@ -32,12 +32,6 @@ class LoginViewModel : ViewModel() {
         return email.matches(Regex(emailPattern))
     }
 
-    // Expresión regular para validar contraseñas: al menos una mayúscula, un número, un carácter especial y longitud mínima de 6 caracteres.
-    private fun isPasswordValid(password: String): Boolean {
-        val passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>_]).{6,}$"
-        return password.matches(Regex(passwordPattern))
-    }
-
     fun login(email: String, password: String) {
         // Validación de los inputs
         if (email.isBlank() || password.isBlank()) {
@@ -47,11 +41,6 @@ class LoginViewModel : ViewModel() {
 
         if (!isEmailValid(email)) {
             uiState = LoginUiState.Error("Correo electrónico no válido.")
-            return
-        }
-
-        if (!isPasswordValid(password)) {
-            uiState = LoginUiState.Error("La contraseña debe tener al menos 6 caracteres, una mayúscula, un número y un carácter especial.")
             return
         }
 
