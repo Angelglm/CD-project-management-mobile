@@ -24,9 +24,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
+
 
 @Composable
 fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: LoginViewModel = viewModel()) {
@@ -110,7 +112,8 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
                     }
                 }, 
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF061B2E)
+                    containerColor = Color(0xFF061B2E),
+                    contentColor = Color.White
                 ),
                 enabled = emailError.isEmpty() && passwordError.isEmpty()
             ) {
