@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,11 +24,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 
 
 @Composable
@@ -38,6 +44,10 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
 
     // Validaciones locales para email y contraseña
     var emailError by remember { mutableStateOf("") }
+
+    // Estados para el toggle de contraseña
+    var passwordVisible by remember { mutableStateOf(false) }
+    val visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
 
     // Expresión regular para validar el correo electrónico
     fun isEmailValid(email: String): Boolean {
@@ -83,8 +93,19 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
             value = password,
             onValueChange = { password = it },
             label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            visualTransformation = visualTransformation,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                val image = if (passwordVisible)
+                    Icons.Filled.Visibility
+                else
+                    Icons.Filled.VisibilityOff
+                val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = description)
+                }
+            }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
