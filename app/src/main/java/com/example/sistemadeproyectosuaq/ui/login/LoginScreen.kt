@@ -34,6 +34,7 @@ import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 
 
 @Composable
@@ -70,7 +71,9 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "INICIO DE SESION")
+        Text(text = "INICIO DE SESIÓN",
+            style = MaterialTheme.typography.titleLarge
+            )
         Spacer(modifier = Modifier.height(24.dp))
 
         // Email input con validación
