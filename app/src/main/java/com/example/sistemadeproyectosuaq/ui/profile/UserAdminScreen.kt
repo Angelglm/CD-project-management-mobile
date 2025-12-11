@@ -71,13 +71,13 @@ fun UserAdminScreen(onNavigateBack: () -> Unit) {
                 Text("Añadir")
             }
         }
-    ) { paddingValues ->
+    ) { paddingValues -> 
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            items(users) { user ->
+            items(users) { user -> 
                 UserAdminItem(user = user)
                 HorizontalDivider(color = Color(0xFF0D3B66))
             }
@@ -86,7 +86,7 @@ fun UserAdminScreen(onNavigateBack: () -> Unit) {
         if (showAddUserDialog) {
             AddUserDialog(
                 onDismissRequest = { showAddUserDialog = false },
-                onConfirmation = { name, email, role ->
+                onConfirmation = { name, email, role -> 
                     val newId = (users.maxOfOrNull { it.id } ?: 0) + 1
                     users = users + AdminUser(newId, name, email, role)
                     showAddUserDialog = false
@@ -120,28 +120,11 @@ private fun AddUserDialog(
     var isRolesMenuExpanded by remember { mutableStateOf(false) }
     var selectedRole by remember { mutableStateOf(roles[0]) }
     var emailError by remember { mutableStateOf("") }
-    var passwordError by remember { mutableStateOf("") }
 
     // Expresión regular para validar el correo electrónico
     fun isEmailValid(email: String): Boolean {
         val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
         return email.matches(Regex(emailPattern))
-    }
-
-    // Expresión regular para validar contraseñas: al menos una mayúscula, un número, un carácter especial y longitud mínima de 6 caracteres.
-    fun isPasswordValid(password: String): Boolean {
-        val passwordPattern = "^(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*(),.?\":{}|<>_]).{6,}$"
-        return password.matches(Regex(passwordPattern))
-    }
-
-    fun passwordErrorMessage(password: String): String {
-        return when {
-            password.length < 6 -> "La contraseña debe tener al menos 6 caracteres."
-            !password.contains(Regex("[A-Z]")) -> "La contraseña debe tener al menos una mayúscula."
-            !password.contains(Regex("[0-9]")) -> "La contraseña debe tener al menos un número."
-            !password.contains(Regex("[!@#$%^&*(),.?\":{}|<>_]")) -> "La contraseña debe tener al menos un carácter especial."
-            else -> ""
-        }
     }
 
     AlertDialog(
@@ -173,22 +156,11 @@ private fun AddUserDialog(
                 }
                 OutlinedTextField(
                     value = password,
-                    onValueChange = { 
-                        password = it
-                        passwordError = passwordErrorMessage(it)  
-                    },
+                    onValueChange = { password = it },
                     label = { Text("Contraseña") },
                     visualTransformation = PasswordVisualTransformation(),
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
-                    isError = passwordError.isNotEmpty()
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
                 )
-                if (passwordError.isNotEmpty()) {
-                    Text(
-                        text = passwordError,
-                        color = Color.Red,
-                        fontSize = 12.sp
-                    )
-                }
 
                 ExposedDropdownMenuBox(
                     expanded = isRolesMenuExpanded,
@@ -222,7 +194,7 @@ private fun AddUserDialog(
         confirmButton = {
             TextButton(
                 onClick = {
-                    if (isEmailValid(email) && passwordError.isEmpty()) {
+                    if (isEmailValid(email)) {
                         onConfirmation(name, email, selectedRole)
                     }
                 }
