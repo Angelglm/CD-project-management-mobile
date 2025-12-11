@@ -25,31 +25,18 @@ class KanbanViewModel : ViewModel() {
     var uiState: KanbanUiState by mutableStateOf(KanbanUiState.Loading)
         private set
 
-    init {
-        fetchProjectData()
-    }
-
-    fun fetchProjectData() {
+    fun fetchTasksForProject(project: Project) {
         viewModelScope.launch {
             uiState = KanbanUiState.Loading
             try {
-                // Step 1: Fetch projects
-                val projectsResponse = ApiClient.service.getProjects()
-                val firstProject = projectsResponse.projects.firstOrNull()
+                // Fetch tasks for the given project (assuming a moduleId of "1" for now)
+                val tasksResponse = ApiClient.service.getTasks(project.id, "1")
 
-                if (firstProject == null) {
-                    uiState = KanbanUiState.Error("No se encontraron proyectos.")
-                    return@launch
-                }
-
-                // Step 2: Fetch tasks for the first project (assuming a moduleId of "1" for now)
-                val tasksResponse = ApiClient.service.getTasks(firstProject.id, "1")
-
-                // Step 3: Set success state
-                uiState = KanbanUiState.Success(KanbanScreenData(firstProject, tasksResponse.tasks))
+                // Set success state
+                uiState = KanbanUiState.Success(KanbanScreenData(project, tasksResponse.tasks))
 
             } catch (e: Exception) {
-                uiState = KanbanUiState.Error("Error al cargar los datos del proyecto: ${e.message}")
+                uiState = KanbanUiState.Error("Error al cargar las tareas del proyecto: ${e.message}")
             }
         }
     }

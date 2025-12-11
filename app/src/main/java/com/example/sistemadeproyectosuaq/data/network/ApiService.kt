@@ -81,6 +81,12 @@ interface ApiService {
         @Header("project_id") projectId: String,
         @Header("module_id") moduleId: String
     ): TasksResponse
+
+    @POST("project/updateTask")
+    suspend fun updateTask(@Body request: UpdateTaskRequest): MessageResponse
+
+    @POST("project/removeTask")
+    suspend fun removeTask(@Body request: RemoveTaskRequest): MessageResponse
 }
 
 object ApiClient {

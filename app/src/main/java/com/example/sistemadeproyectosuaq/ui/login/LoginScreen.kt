@@ -25,6 +25,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
@@ -33,15 +34,6 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     val uiState = loginViewModel.uiState
-
-    // Validaciones locales para email y contraseña
-    var emailError by remember { mutableStateOf("") }
-
-    // Expresión regular para validar el correo electrónico
-    fun isEmailValid(email: String): Boolean {
-        val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-        return email.matches(Regex(emailPattern))
-    }
 
     // Gestionar la navegación tras un inicio de sesión exitoso
     LaunchedEffect(uiState) {
@@ -61,22 +53,15 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         Text(text = "INICIO DE SESION")
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Email input con validación
+        // Email input
         OutlinedTextField(
             value = email,
-            onValueChange = { 
-                email = it 
-                emailError = if (isEmailValid(it)) "" else "Correo electrónico no válido"
-            },
-            label = { Text("Correo Electronico o usuario") },
-            isError = emailError.isNotEmpty()
+            onValueChange = { email = it },
+            label = { Text("Correo Electronico o usuario") }
         )
-        if (emailError.isNotEmpty()) {
-            Text(text = emailError, color = Color.Red, fontSize = 12.sp)
-        }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Password input 
+        // Password input
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
@@ -86,22 +71,23 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        if (uiState is LoginUiState.Loading) {
+        val isLoading = uiState is LoginUiState.Loading
+
+        Button(
+            onClick = {
+                loginViewModel.login(email.trim(), password.trim()) // Trim whitespace
+            },
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFF061B2E)
+            ),
+            enabled = !isLoading
+        ) {
+            Text("INICIAR")
+        }
+
+        if (isLoading) {
+            Spacer(modifier = Modifier.height(16.dp))
             CircularProgressIndicator()
-        } else {
-            Button(
-                onClick = { 
-                    if (emailError.isEmpty()) {
-                        loginViewModel.login(email.trim(), password.trim()) // Trim whitespace
-                    }
-                }, 
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF061B2E)
-                ),
-                enabled = emailError.isEmpty()
-            ) {
-                Text("INICIAR")
-            }
         }
 
         if (uiState is LoginUiState.Error) {

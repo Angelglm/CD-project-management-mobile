@@ -5,6 +5,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
@@ -22,12 +23,14 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
+import com.example.sistemadeproyectosuaq.data.network.Project
+import com.example.sistemadeproyectosuaq.data.network.SessionManager
 import com.example.sistemadeproyectosuaq.ui.add_project.AddProjectScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.KanbanScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.TaskDetail
 import com.example.sistemadeproyectosuaq.ui.login.LoginScreen
-import com.example.sistemadeproyectosuaq.ui.login.LoginSuccessData
 import com.example.sistemadeproyectosuaq.ui.profile.UserAdminScreen
+import com.example.sistemadeproyectosuaq.ui.projects.ProjectListScreen
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
 class MainActivity : ComponentActivity() {
@@ -46,14 +49,23 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun SistemaDeProyectosUAQApp() {
     var userRole by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedProject by rememberSaveable { mutableStateOf<Project?>(null) }
     var selectedTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
 
+    val onLogout = {
+        userRole = null
+        selectedProject = null
+        selectedTaskId = null
+        SessionManager.onLogout()
+        currentDestination = AppDestinations.HOME
+    }
+
     if (userRole != null) {
-        val availableDestinations = if (userRole == "Admin") {
+        val availableDestinations = if (userRole == "1") { // Admin role
             AppDestinations.entries
         } else {
-            AppDestinations.entries.filter { it.isAdminOnly == false }
+            AppDestinations.entries.filter { !it.isAdminOnly }
         }
 
         NavigationSuiteScaffold(
@@ -70,29 +82,67 @@ fun SistemaDeProyectosUAQApp() {
                         selected = destination == currentDestination,
                         onClick = {
                             currentDestination = destination
-                            selectedTaskId = null // Reset task detail when switching tabs
+                            selectedProject = null
+                            selectedTaskId = null
                         }
                     )
                 }
             }
         ) {
-            Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            Scaffold(
+                modifier = Modifier.fillMaxSize()
+            ) { paddingValues ->
+                val modifier = Modifier.padding(paddingValues)
+
                 when (currentDestination) {
                     AppDestinations.HOME -> {
-                        if (selectedTaskId == null) {
-                            KanbanScreen(onTaskClick = { task -> selectedTaskId = task.id })
+                        if (selectedProject == null) {
+                            ProjectListScreen(
+                                onProjectClick = { project ->
+                                    selectedProject = project
+                                }
+                            )
+                        } else if (selectedTaskId == null) {
+                            KanbanScreen(
+                                project = selectedProject!!,
+                                userRole = userRole!!,
+                                onTaskClick = { task ->
+                                    selectedTaskId = task.id
+                                },
+                                onAddTaskClick = { /* TODO */ },
+                                onNavigateBack = { selectedProject = null }
+                            )
                         } else {
-                            TaskDetail(taskId = selectedTaskId!!, onNavigateBack = { selectedTaskId = null })
+                            TaskDetail(
+                                userRole = userRole!!,
+                                projectId = selectedProject!!.id, // ahora coincide con String
+                                moduleId = "1",
+                                taskId = selectedTaskId!!,
+                                onNavigateBack = { selectedTaskId = null }
+                            )
                         }
                     }
+
                     AppDestinations.PROJECT_MANAGEMENT -> {
-                        // Placeholder for ProjectListScreen
+                        ProjectListScreen(onProjectClick = { project ->
+                            selectedProject = project
+                            currentDestination = AppDestinations.HOME
+                        })
                     }
+
                     AppDestinations.ADD_PROJECT -> {
-                        AddProjectScreen(onProjectCreated = { currentDestination = AppDestinations.HOME })
+                        AddProjectScreen(
+                            onProjectCreated = {
+                                currentDestination = AppDestinations.HOME
+                            }
+                        )
                     }
+
                     AppDestinations.PROFILE -> {
-                        UserAdminScreen(onNavigateBack = { currentDestination = AppDestinations.HOME })
+                        UserAdminScreen(
+                            onNavigateBack = { currentDestination = AppDestinations.HOME },
+                            onLogout = onLogout
+                        )
                     }
                 }
             }
@@ -103,6 +153,7 @@ fun SistemaDeProyectosUAQApp() {
         })
     }
 }
+
 
 enum class AppDestinations(
     val label: String,

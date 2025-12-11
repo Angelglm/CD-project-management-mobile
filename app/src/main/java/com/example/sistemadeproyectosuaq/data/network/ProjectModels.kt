@@ -1,18 +1,18 @@
 package com.example.sistemadeproyectosuaq.data.network
 
-import android.annotation.SuppressLint
+import android.os.Parcelable
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 // --- Models for Getting Projects and Tasks ---
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class ProjectsResponse(
     val projects: List<Project>
 )
 
-@SuppressLint("UnsafeOptInUsageError")
+@Parcelize
 @Serializable
 data class Project(
     val id: String,
@@ -20,15 +20,13 @@ data class Project(
     val description: String,
     val start: String,
     val end: String
-)
+) : Parcelable
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class TasksResponse(
     val tasks: List<ApiTask>
 )
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class ApiTask(
     val id: Int,
@@ -36,12 +34,11 @@ data class ApiTask(
     val description: String,
     val priority: String,
     val status: String,
-    @SerialName("user_ids") val userIds: Int? = null
+    @SerialName("user_ids") val user_ids: List<Int>? = null
 )
 
 // --- Models for Creating a Project ---
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class CreateProjectRequest(
     val name: String,
@@ -52,36 +49,52 @@ data class CreateProjectRequest(
     val end: String      // Expecting format like "YYYY-MM-DD"
 )
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class CreateProjectResponse(
-    @SerialName("projectID") val projectId: String
+    @SerialName("projectID") val projectId: String? = null // Made nullable to handle missing field
 )
 
 // --- Models for Project Members ---
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class ProjectMembersResponse(
     val members: List<ProjectMember>
 )
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class ProjectMember(
     val id: Int,
     val name: String
 )
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class AddMemberRequest(
     @SerialName("project_id") val projectId: String,
     @SerialName("user_id") val userId: Int
 )
 
-@SuppressLint("UnsafeOptInUsageError")
 @Serializable
 data class MessageResponse(
     val message: String
+)
+
+// --- Models for Task Updates ---
+
+@Serializable
+data class UpdateTaskRequest(
+    val project_id: String,
+    val module_id: String,
+    val task_id: Int,
+    val title: String,
+    val description: String,
+    val priority: String,
+    val status: String,
+    val user_ids: List<Int>?
+)
+
+@Serializable
+data class RemoveTaskRequest(
+    val project_id: String,
+    val module_id: String,
+    val task_id: Int
 )

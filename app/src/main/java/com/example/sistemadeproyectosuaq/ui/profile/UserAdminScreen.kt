@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -44,7 +45,7 @@ data class AdminUser(val id: Int, val name: String, val email: String, val role:
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserAdminScreen(onNavigateBack: () -> Unit) {
+fun UserAdminScreen(onNavigateBack: () -> Unit, onLogout: () -> Unit) {
     var users by remember {
         mutableStateOf(emptyList<AdminUser>())
     }
@@ -57,6 +58,11 @@ fun UserAdminScreen(onNavigateBack: () -> Unit) {
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                    }
+                },
+                actions = {
+                    IconButton(onClick = onLogout) {
+                        Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Logout")
                     }
                 }
             )
@@ -71,13 +77,13 @@ fun UserAdminScreen(onNavigateBack: () -> Unit) {
                 Text("Añadir")
             }
         }
-    ) { paddingValues -> 
+    ) { paddingValues ->
         LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp)
         ) {
-            items(users) { user -> 
+            items(users) { user ->
                 UserAdminItem(user = user)
                 HorizontalDivider(color = Color(0xFF0D3B66))
             }
@@ -86,7 +92,7 @@ fun UserAdminScreen(onNavigateBack: () -> Unit) {
         if (showAddUserDialog) {
             AddUserDialog(
                 onDismissRequest = { showAddUserDialog = false },
-                onConfirmation = { name, email, role -> 
+                onConfirmation = { name, email, role ->
                     val newId = (users.maxOfOrNull { it.id } ?: 0) + 1
                     users = users + AdminUser(newId, name, email, role)
                     showAddUserDialog = false
@@ -218,6 +224,6 @@ private fun AddUserDialog(
 @Composable
 fun UserAdminScreenPreview() {
     SistemaDeProyectosUAQTheme {
-        UserAdminScreen(onNavigateBack = {})
+        UserAdminScreen(onNavigateBack = {}, onLogout = {})
     }
 }
