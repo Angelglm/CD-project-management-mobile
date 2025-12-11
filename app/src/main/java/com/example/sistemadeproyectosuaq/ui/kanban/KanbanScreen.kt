@@ -49,7 +49,7 @@ import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
 enum class TaskStatus(val title: String, val color: Color) {
     TODO("TO DO", Color.Red),
-    IN_PROGRESS("IN PROGRESS", Color(0xFFFFA500)), // Orange
+    IN_PROGRESS("IN PROGRESS", Color(0xFFFFA500)),
     DONE("DONE", Color.Green)
 }
 
@@ -81,7 +81,7 @@ fun KanbanScreen(
             )
         },
         floatingActionButton = {
-            if (userRole == "1") { // Admin
+            if (userRole == "1") {
                 FloatingActionButton(onClick = onAddTaskClick) {
                     Icon(Icons.Default.Add, contentDescription = "Add Task")
                 }
@@ -123,8 +123,8 @@ fun KanbanView(
     Row(
         modifier = Modifier
             .fillMaxSize()
-            .padding(contentPadding) // Use the padding from the Scaffold
-            .padding(horizontal = 16.dp) // Add horizontal padding for the content
+            .padding(contentPadding)
+            .padding(horizontal = 16.dp)
             .horizontalScroll(scrollState)
     ) {
         val tasksByStatus = tasks.groupBy { it.status }
@@ -146,7 +146,7 @@ private fun mapApiStatusToTaskStatus(apiStatus: String): TaskStatus {
         "1" -> TaskStatus.TODO
         "2" -> TaskStatus.IN_PROGRESS
         "3" -> TaskStatus.DONE
-        else -> TaskStatus.TODO // Default case
+        else -> TaskStatus.TODO
     }
 }
 

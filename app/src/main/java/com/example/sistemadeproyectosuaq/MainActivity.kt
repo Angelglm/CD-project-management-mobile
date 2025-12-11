@@ -62,7 +62,7 @@ fun SistemaDeProyectosUAQApp() {
     }
 
     if (userRole != null) {
-        val availableDestinations = if (userRole == "1") { // Admin role
+        val availableDestinations = if (userRole == "1") {
             AppDestinations.entries
         } else {
             AppDestinations.entries.filter { !it.isAdminOnly }
@@ -115,7 +115,7 @@ fun SistemaDeProyectosUAQApp() {
                         } else {
                             TaskDetail(
                                 userRole = userRole!!,
-                                projectId = selectedProject!!.id, // ahora coincide con String
+                                projectId = selectedProject!!.id,
                                 moduleId = "1",
                                 taskId = selectedTaskId!!,
                                 onNavigateBack = { selectedTaskId = null }

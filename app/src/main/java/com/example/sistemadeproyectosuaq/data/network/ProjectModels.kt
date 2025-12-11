@@ -12,8 +12,8 @@ data class ProjectsResponse(
     val projects: List<Project>
 )
 
-@Parcelize
 @Serializable
+@Parcelize
 data class Project(
     val id: String,
     val name: String,
@@ -45,13 +45,13 @@ data class CreateProjectRequest(
     val description: String,
     @SerialName("client_id") val clientId: Int,
     @SerialName("team_leader_id") val teamLeaderId: Int,
-    val start: String, // Expecting format like "YYYY-MM-DD"
+    val start: String,
     val end: String      // Expecting format like "YYYY-MM-DD"
 )
 
 @Serializable
 data class CreateProjectResponse(
-    @SerialName("projectID") val projectId: String? = null // Made nullable to handle missing field
+    @SerialName("projectID") val projectId: String? = null
 )
 
 // --- Models for Project Members ---

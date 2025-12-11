@@ -127,7 +127,6 @@ private fun AddUserDialog(
     var selectedRole by remember { mutableStateOf(roles[0]) }
     var emailError by remember { mutableStateOf("") }
 
-    // Expresión regular para validar el correo electrónico
     fun isEmailValid(email: String): Boolean {
         val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
         return email.matches(Regex(emailPattern))

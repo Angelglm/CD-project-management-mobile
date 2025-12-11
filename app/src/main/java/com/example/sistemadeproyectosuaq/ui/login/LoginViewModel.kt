@@ -27,7 +27,6 @@ class LoginViewModel : ViewModel() {
         private set
 
     fun login(email: String, password: String) {
-        // Validación de los inputs
         if (email.isBlank() || password.isBlank()) {
             uiState = LoginUiState.Error("Por favor, ingresa tu correo y contraseña.")
             return
@@ -46,7 +45,6 @@ class LoginViewModel : ViewModel() {
                 val tokenResponse = ApiClient.service.getToken(loginResponse.userKey)
                 Log.d("LoginViewModel", "Token response: $tokenResponse")
 
-                // Guardar el token
                 SessionManager.onLoginSuccess(tokenResponse.token)
                 Log.d("LoginViewModel", "Token saved successfully.")
 

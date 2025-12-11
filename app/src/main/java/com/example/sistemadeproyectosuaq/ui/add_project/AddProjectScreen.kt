@@ -41,8 +41,8 @@ fun AddProjectScreen(
     var description by remember { mutableStateOf("") }
     var clientId by remember { mutableStateOf("") }
     var teamLeaderId by remember { mutableStateOf("") }
-    var startDate by remember { mutableStateOf("") } // YYYY-MM-DD
-    var endDate by remember { mutableStateOf("") }   // YYYY-MM-DD
+    var startDate by remember { mutableStateOf("") }
+    var endDate by remember { mutableStateOf("") }
 
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -90,7 +90,7 @@ fun AddProjectScreen(
         }
     }
 
-    // Handle UI state changes
+
     LaunchedEffect(uiState) {
         when (uiState) {
             is AddProjectUiState.Success -> {

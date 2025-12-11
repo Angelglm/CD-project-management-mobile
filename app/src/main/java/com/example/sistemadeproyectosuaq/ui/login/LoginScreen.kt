@@ -35,11 +35,10 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
     var password by remember { mutableStateOf("") }
     val uiState = loginViewModel.uiState
 
-    // Gestionar la navegación tras un inicio de sesión exitoso
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
             onLoginSuccess(uiState.data)
-            loginViewModel.resetState() // Reset state after navigation
+            loginViewModel.resetState()
         }
     }
 
@@ -75,7 +74,7 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
 
         Button(
             onClick = {
-                loginViewModel.login(email.trim(), password.trim()) // Trim whitespace
+                loginViewModel.login(email.trim(), password.trim())
             },
             colors = ButtonDefaults.buttonColors(
                 containerColor = Color(0xFF061B2E)

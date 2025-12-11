@@ -44,7 +44,6 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sistemadeproyectosuaq.data.network.ApiTask
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
-// Mock data - replace with ViewModel data later
 data class Comment(val id: Int, val author: String, val text: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -76,9 +75,8 @@ fun TaskDetail(
                     }
                 },
                 actions = {
-                    if (userRole == "1") { // Admin
+                    if (userRole == "1") {
                         IconButton(onClick = {
-                            // TODO: viewModel.deleteTask(projectId, moduleId, taskId)
                         }) {
                             Icon(
                                 Icons.Default.Delete,
@@ -121,7 +119,6 @@ fun TaskDetail(
                 }
 
                 TaskDetailUiState.TaskDeleted -> {
-                    // Por ejemplo, regresar automáticamente cuando se borre
                     LaunchedEffect(Unit) {
                         onNavigateBack()
                     }
@@ -138,7 +135,7 @@ fun TaskDetailContent(
     onUpdateStatus: (String) -> Unit
 ) {
     var newCommentText by remember { mutableStateOf("") }
-    var comments by remember { mutableStateOf(emptyList<Comment>()) } // Placeholder
+    var comments by remember { mutableStateOf(emptyList<Comment>()) }
 
     Column(
         modifier = Modifier
@@ -206,13 +203,12 @@ fun TaskDetailContent(
             Text("Añadir")
         }
 
-        // --- Status Update Button ---
-        if (userRole == "1" || userRole == "2") { // Admin or User
+        if (userRole == "1" || userRole == "2") {
             Spacer(Modifier.height(16.dp))
             val currentStatus = mapApiStatusToTaskStatus(task.status)
             if (currentStatus != TaskStatus.DONE) {
                 Button(
-                    onClick = { onUpdateStatus("3") }, // "3" is for DONE
+                    onClick = { onUpdateStatus("3") },
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text("Marcar como Completada")
@@ -222,14 +218,13 @@ fun TaskDetailContent(
     }
 }
 
-// Esta función es LOCAL a este archivo TaskDetail.kt
-// y NO tiene nada que ver con la privada de KanbanScreen.kt
+
 private fun mapApiStatusToTaskStatus(apiStatus: String): TaskStatus {
     return when (apiStatus) {
         "1" -> TaskStatus.TODO
         "2" -> TaskStatus.IN_PROGRESS
         "3" -> TaskStatus.DONE
-        else -> TaskStatus.TODO // Default case
+        else -> TaskStatus.TODO
     }
 }
 

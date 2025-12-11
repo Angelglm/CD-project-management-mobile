@@ -24,7 +24,6 @@ class AddProjectViewModel : ViewModel() {
         private set
 
     fun createProject(name: String, description: String, clientId: Int, teamLeaderId: Int, start: String, end: String) {
-        // Basic validation
         if (name.isBlank() || description.isBlank() || start.isBlank() || end.isBlank()) {
             uiState = AddProjectUiState.Error("Por favor, completa todos los campos.")
             return

@@ -57,7 +57,6 @@ class TaskDetailViewModel : ViewModel() {
                     )
                     ApiClient.service.updateTask(request)
 
-                    // Refresh the task details to show the updated status
                     fetchTask(projectId, moduleId, task.id)
 
                 } catch (e: Exception) {
