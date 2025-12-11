@@ -35,4 +35,17 @@ class ProjectListViewModel : ViewModel() {
             }
         }
     }
+
+    fun deleteProject(projectId: String, onSuccess: () -> Unit, onError: (String) -> Unit) {
+        viewModelScope.launch {
+            try {
+                val request = com.example.sistemadeproyectosuaq.data.network.DeleteProjectRequest(projectId)
+                ApiClient.service.deleteProject(request)
+                onSuccess()
+                fetchProjects() // Refresh list after deletion
+            } catch (e: Exception) {
+                onError("Error eliminando proyecto: ${e.message}")
+            }
+        }
+    }
 }

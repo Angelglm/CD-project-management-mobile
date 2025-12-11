@@ -1,6 +1,7 @@
 package com.example.sistemadeproyectosuaq.data.network
 
 import android.annotation.SuppressLint
+import android.util.Log
 import com.jakewharton.retrofit2.converter.kotlinx.serialization.asConverterFactory
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType
@@ -8,6 +9,7 @@ import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.HTTP
 import retrofit2.http.Header
 import retrofit2.http.POST
 import java.security.SecureRandom
@@ -38,6 +40,15 @@ private fun createUnsafeOkHttpClient(): OkHttpClient {
     return OkHttpClient.Builder()
         .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
         .hostnameVerifier { _, _ -> true }
+        // Log minimal request/response info to debug project creation responses
+        .addInterceptor { chain ->
+            val request = chain.request()
+            Log.d("ApiClient", "--> ${request.method()} ${request.url()}")
+            val response = chain.proceed(request)
+            val responseBody = response.peekBody(Long.MAX_VALUE).string()
+            Log.d("ApiClient", "<-- ${response.code()} ${response.message()} body=$responseBody")
+            response
+        }
         .addInterceptor(AuthInterceptor())
         .connectTimeout(30, TimeUnit.SECONDS)
         .readTimeout(30, TimeUnit.SECONDS)
@@ -69,11 +80,17 @@ interface ApiService {
     @POST("project")
     suspend fun createProject(@Body request: CreateProjectRequest): CreateProjectResponse
 
+    @HTTP(method = "DELETE", path = "project", hasBody = true)
+    suspend fun deleteProject(@Body request: DeleteProjectRequest): MessageResponse
+
     @GET("project/getMembers")
     suspend fun getProjectMembers(@Header("project_id") projectId: String): ProjectMembersResponse
 
     @POST("project/addMember")
     suspend fun addProjectMember(@Body request: AddMemberRequest): MessageResponse
+
+    @GET("project/getModules")
+    suspend fun getModules(@Header("project_id") projectId: String): ModulesResponse
     
     // Tasks
     @GET("project/getTasks")
@@ -87,6 +104,9 @@ interface ApiService {
 
     @POST("project/removeTask")
     suspend fun removeTask(@Body request: RemoveTaskRequest): MessageResponse
+
+    @POST("project/createTask")
+    suspend fun createTask(@Body request: CreateTaskRequest): MessageResponse
 }
 
 object ApiClient {

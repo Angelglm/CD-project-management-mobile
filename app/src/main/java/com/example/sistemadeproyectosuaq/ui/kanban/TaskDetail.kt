@@ -239,7 +239,7 @@ fun TaskDetailPreview() {
                 description = "Descripción de prueba",
                 priority = "1",
                 status = "1",
-                user_ids = listOf(1, 2)
+                user_ids = 1
             ),
             userRole = "1",
             onUpdateStatus = {}

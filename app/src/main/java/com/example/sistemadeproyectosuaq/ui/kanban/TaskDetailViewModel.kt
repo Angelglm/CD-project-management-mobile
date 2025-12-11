@@ -53,7 +53,7 @@ class TaskDetailViewModel : ViewModel() {
                         description = task.description,
                         priority = task.priority,
                         status = newStatus,
-                        user_ids = task.user_ids
+                        user_ids = task.user_ids?.let { listOf(it) }
                     )
                     ApiClient.service.updateTask(request)
 

@@ -28,13 +28,28 @@ data class TasksResponse(
 )
 
 @Serializable
+data class ModulesResponse(
+    val modules: List<Module>
+)
+
+@Serializable
+data class Module(
+    val id: Int,
+    val title: String,
+    val description: String,
+    val priority: String,
+    val status: String,
+    @SerialName("team_ids") val teamIds: Int? = null
+)
+
+@Serializable
 data class ApiTask(
     val id: Int,
     val title: String,
     val description: String,
     val priority: String,
     val status: String,
-    @SerialName("user_ids") val user_ids: List<Int>? = null
+    @SerialName("user_ids") val user_ids: Int? = null
 )
 
 // --- Models for Creating a Project ---
@@ -51,7 +66,12 @@ data class CreateProjectRequest(
 
 @Serializable
 data class CreateProjectResponse(
-    @SerialName("projectID") val projectId: String? = null
+    @SerialName("project_id") val projectId: String? = null
+)
+
+@Serializable
+data class DeleteProjectRequest(
+    @SerialName("project_id") val projectId: String
 )
 
 // --- Models for Project Members ---
@@ -76,6 +96,17 @@ data class AddMemberRequest(
 @Serializable
 data class MessageResponse(
     val message: String
+)
+
+@Serializable
+data class CreateTaskRequest(
+    val project_id: String,
+    val module_id: String,
+    val title: String,
+    val description: String,
+    val priority: String,
+    val status: String,
+    val user_ids: List<Int>?
 )
 
 // --- Models for Task Updates ---

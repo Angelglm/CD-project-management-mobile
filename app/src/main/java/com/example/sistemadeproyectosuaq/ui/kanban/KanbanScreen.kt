@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -56,20 +56,23 @@ enum class TaskStatus(val title: String, val color: Color) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KanbanScreen(
+    modifier: Modifier = Modifier,
     project: Project,
     userRole: String,
     onTaskClick: (ApiTask) -> Unit,
     onAddTaskClick: () -> Unit,
     onNavigateBack: () -> Unit,
+    refreshKey: Int = 0,
     viewModel: KanbanViewModel = viewModel()
 ) {
-    LaunchedEffect(project) {
+    LaunchedEffect(project, refreshKey) {
         viewModel.fetchTasksForProject(project)
     }
 
     val uiState = viewModel.uiState
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = { Text(project.name) },
