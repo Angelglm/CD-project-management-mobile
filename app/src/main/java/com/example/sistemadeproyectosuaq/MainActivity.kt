@@ -9,12 +9,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBox
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -24,6 +26,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.tooling.preview.PreviewScreenSizes
 import com.example.sistemadeproyectosuaq.data.network.Project
 import com.example.sistemadeproyectosuaq.data.network.SessionManager
+import com.example.sistemadeproyectosuaq.ui.add_module.AddModuleScreen
 import com.example.sistemadeproyectosuaq.ui.add_project.AddProjectScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.AddTaskScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.KanbanScreen
@@ -52,6 +55,7 @@ fun SistemaDeProyectosUAQApp() {
     var selectedProject by rememberSaveable { mutableStateOf<Project?>(null) }
     var selectedTaskId by rememberSaveable { mutableStateOf<Int?>(null) }
     var isCreatingTask by rememberSaveable { mutableStateOf(false) }
+    var isCreatingModule by rememberSaveable { mutableStateOf(false) }
     var projectListRefreshKey by rememberSaveable { mutableStateOf(0) }
     var kanbanRefreshKey by rememberSaveable { mutableStateOf(0) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
@@ -85,10 +89,16 @@ fun SistemaDeProyectosUAQApp() {
                         label = { Text(destination.label) },
                         selected = destination == currentDestination,
                         onClick = {
-                            currentDestination = destination
-                            selectedProject = null
-                            selectedTaskId = null
-                            isCreatingTask = false
+                            if (destination != currentDestination) {
+                                currentDestination = destination
+                                // Only reset project context when leaving HOME
+                                if (destination != AppDestinations.HOME) {
+                                    selectedProject = null
+                                    selectedTaskId = null
+                                    isCreatingTask = false
+                                    isCreatingModule = false
+                                }
+                            }
                         }
                     )
                 }
@@ -107,6 +117,18 @@ fun SistemaDeProyectosUAQApp() {
                                 onProjectClick = { project ->
                                     selectedProject = project
                                     isCreatingTask = false
+                                    isCreatingModule = false
+                                }
+                            )
+                        } else if (isCreatingModule) {
+                            AddModuleScreen(
+                                project = selectedProject!!,
+                                onModuleCreated = {
+                                    isCreatingModule = false
+                                    kanbanRefreshKey += 1
+                                },
+                                onNavigateBack = {
+                                    isCreatingModule = false
                                 }
                             )
                         } else if (isCreatingTask) {
@@ -131,10 +153,12 @@ fun SistemaDeProyectosUAQApp() {
                                     selectedTaskId = task.id
                                 },
                                 onAddTaskClick = { isCreatingTask = true },
+                                onAddModuleClick = { isCreatingModule = true },
                                 onNavigateBack = {
                                     selectedProject = null
                                     selectedTaskId = null
                                     isCreatingTask = false
+                                    isCreatingModule = false
                                 }
                             )
                         } else {
@@ -155,6 +179,7 @@ fun SistemaDeProyectosUAQApp() {
                         AddProjectScreen(
                             onProjectCreated = {
                                 isCreatingTask = false
+                                isCreatingModule = false
                                 projectListRefreshKey += 1
                                 currentDestination = AppDestinations.HOME
                             }
@@ -183,6 +208,7 @@ enum class AppDestinations(
     val isAdminOnly: Boolean = false
 ) {
     HOME("Home", Icons.Default.Home),
+
     ADD_PROJECT("Add Project", Icons.Default.Add, true),
     PROFILE("Profile", Icons.Default.AccountBox, true),
 }

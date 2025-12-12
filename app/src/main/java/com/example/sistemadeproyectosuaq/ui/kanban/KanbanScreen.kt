@@ -22,6 +22,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -61,6 +62,7 @@ fun KanbanScreen(
     userRole: String,
     onTaskClick: (ApiTask) -> Unit,
     onAddTaskClick: () -> Unit,
+    onAddModuleClick: () -> Unit = {},
     onNavigateBack: () -> Unit,
     refreshKey: Int = 0,
     viewModel: KanbanViewModel = viewModel()
@@ -85,8 +87,14 @@ fun KanbanScreen(
         },
         floatingActionButton = {
             if (userRole == "1") {
-                FloatingActionButton(onClick = onAddTaskClick) {
-                    Icon(Icons.Default.Add, contentDescription = "Add Task")
+                Column(horizontalAlignment = Alignment.End) {
+                    FloatingActionButton(onClick = onAddModuleClick) {
+                        Icon(Icons.Default.Info, contentDescription = "Add Module")
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    FloatingActionButton(onClick = onAddTaskClick) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Task")
+                    }
                 }
             }
         }

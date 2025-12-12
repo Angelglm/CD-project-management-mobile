@@ -91,6 +91,9 @@ interface ApiService {
 
     @GET("project/getModules")
     suspend fun getModules(@Header("project_id") projectId: String): ModulesResponse
+
+    @POST("project/createModule")
+    suspend fun createModule(@Body request: CreateModuleRequest): MessageResponse
     
     // Tasks
     @GET("project/getTasks")
@@ -107,6 +110,10 @@ interface ApiService {
 
     @POST("project/createTask")
     suspend fun createTask(@Body request: CreateTaskRequest): MessageResponse
+
+    // User Management
+    @POST("create/user")
+    suspend fun createUser(@Body request: CreateUserRequest): CreateUserResponse
 }
 
 object ApiClient {

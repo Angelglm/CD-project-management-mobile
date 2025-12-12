@@ -43,6 +43,15 @@ data class Module(
 )
 
 @Serializable
+data class CreateModuleRequest(
+    @SerialName("project_id") val projectId: String,
+    val title: String,
+    val description: String,
+    val priority: String,
+    val status: String
+)
+
+@Serializable
 data class ApiTask(
     val id: Int,
     val title: String,
@@ -72,6 +81,22 @@ data class CreateProjectResponse(
 @Serializable
 data class DeleteProjectRequest(
     @SerialName("project_id") val projectId: String
+)
+
+// --- Models for User Management ---
+
+@Serializable
+data class CreateUserRequest(
+    val name: String,
+    val email: String,
+    val phone: String,
+    val role: String
+)
+
+@Serializable
+data class CreateUserResponse(
+    val message: String,
+    @SerialName("tempPassword") val tempPassword: String
 )
 
 // --- Models for Project Members ---
