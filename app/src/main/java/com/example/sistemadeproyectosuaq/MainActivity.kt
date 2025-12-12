@@ -32,9 +32,11 @@ import com.example.sistemadeproyectosuaq.ui.kanban.AddTaskScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.KanbanScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.TaskDetail
 import com.example.sistemadeproyectosuaq.ui.login.LoginScreen
+import com.example.sistemadeproyectosuaq.ui.profile.AdminProfileScreen
 import com.example.sistemadeproyectosuaq.ui.profile.UserAdminScreen
 import com.example.sistemadeproyectosuaq.ui.profile.UserProfileScreen
 import com.example.sistemadeproyectosuaq.ui.projects.ProjectListScreen
+import com.example.sistemadeproyectosuaq.ui.team.TeamManagementScreen
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
 class MainActivity : ComponentActivity() {
@@ -60,12 +62,14 @@ fun SistemaDeProyectosUAQApp() {
     var projectListRefreshKey by rememberSaveable { mutableStateOf(0) }
     var kanbanRefreshKey by rememberSaveable { mutableStateOf(0) }
     var currentDestination by rememberSaveable { mutableStateOf(AppDestinations.HOME) }
+    var adminProfileDestination by rememberSaveable { mutableStateOf(AdminProfileDestination.HUB) }
 
     val onLogout = {
         userRole = null
         selectedProject = null
         selectedTaskId = null
         isCreatingTask = false
+        adminProfileDestination = AdminProfileDestination.HUB
         SessionManager.onLogout()
         currentDestination = AppDestinations.HOME
     }
@@ -189,10 +193,28 @@ fun SistemaDeProyectosUAQApp() {
 
                     AppDestinations.PROFILE -> {
                         if (userRole == "1") {
-                            UserAdminScreen(
-                                onNavigateBack = { currentDestination = AppDestinations.HOME },
-                                onLogout = onLogout
-                            )
+                            when (adminProfileDestination) {
+                                AdminProfileDestination.HUB -> {
+                                    AdminProfileScreen(
+                                        onNavigateBack = { currentDestination = AppDestinations.HOME },
+                                        onLogout = onLogout,
+                                        onManageUsers = { adminProfileDestination = AdminProfileDestination.USERS },
+                                        onManageTeams = { adminProfileDestination = AdminProfileDestination.TEAMS }
+                                    )
+                                }
+                                AdminProfileDestination.USERS -> {
+                                    UserAdminScreen(
+                                        onNavigateBack = { adminProfileDestination = AdminProfileDestination.HUB },
+                                        onLogout = onLogout
+                                    )
+                                }
+                                AdminProfileDestination.TEAMS -> {
+                                    TeamManagementScreen(
+                                        onNavigateBack = { adminProfileDestination = AdminProfileDestination.HUB },
+                                        onLogout = onLogout
+                                    )
+                                }
+                            }
                         } else {
                             UserProfileScreen(
                                 onNavigateBack = { currentDestination = AppDestinations.HOME },
@@ -219,4 +241,8 @@ enum class AppDestinations(
 
     ADD_PROJECT("Add Project", Icons.Default.Add, true),
     PROFILE("Profile", Icons.Default.AccountBox, false),
+}
+
+enum class AdminProfileDestination {
+    HUB, USERS, TEAMS
 }

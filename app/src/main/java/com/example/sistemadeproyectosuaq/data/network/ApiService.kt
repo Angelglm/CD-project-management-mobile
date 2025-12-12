@@ -89,6 +89,21 @@ interface ApiService {
     @POST("project/addMember")
     suspend fun addProjectMember(@Body request: AddMemberRequest): MessageResponse
 
+    @POST("project/removeMember")
+    suspend fun removeProjectMember(@Body request: RemoveMemberRequest): MessageResponse
+
+    @GET("project/getTeams")
+    suspend fun getTeams(@Header("project_id") projectId: String): TeamsResponse
+
+    @POST("project/createTeam")
+    suspend fun createTeam(@Body request: CreateTeamRequest): MessageResponse
+
+    @POST("project/updateTeam")
+    suspend fun updateTeam(@Body request: UpdateTeamRequest): MessageResponse
+
+    @POST("project/removeTeam")
+    suspend fun removeTeam(@Body request: RemoveTeamRequest): MessageResponse
+
     @GET("project/getModules")
     suspend fun getModules(@Header("project_id") projectId: String): ModulesResponse
 

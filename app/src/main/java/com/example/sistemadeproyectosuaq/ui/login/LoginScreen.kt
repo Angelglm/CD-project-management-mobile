@@ -43,24 +43,20 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
     var password by remember { mutableStateOf("") }
     val uiState = loginViewModel.uiState
 
-    // Validaciones locales para email y contraseña
     var emailError by remember { mutableStateOf("") }
 
-    // Estados para el toggle de contraseña
     var passwordVisible by remember { mutableStateOf(false) }
     val visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
 
-    // Expresión regular para validar el correo electrónico
     fun isEmailValid(email: String): Boolean {
         val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
         return email.matches(Regex(emailPattern))
     }
 
-    // Gestionar la navegación tras un inicio de sesión exitoso
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
             onLoginSuccess(uiState.data)
-            loginViewModel.resetState() // Reset state after navigation
+            loginViewModel.resetState()
         }
     }
 
@@ -76,7 +72,6 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
             )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Email input con validación
         OutlinedTextField(
             value = email,
             onValueChange = { 
@@ -91,7 +86,6 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Password input 
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },

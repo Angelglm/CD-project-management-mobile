@@ -119,8 +119,49 @@ data class AddMemberRequest(
 )
 
 @Serializable
+data class RemoveMemberRequest(
+    @SerialName("project_id") val projectId: String,
+    @SerialName("user_id") val userId: Int
+)
+
+@Serializable
 data class MessageResponse(
     val message: String
+)
+
+// --- Models for Teams ---
+
+@Serializable
+data class TeamsResponse(
+    val teams: List<Team>
+)
+
+@Serializable
+data class Team(
+    val id: Int,
+    val name: String,
+    val description: String
+)
+
+@Serializable
+data class CreateTeamRequest(
+    @SerialName("project_id") val projectId: String,
+    val name: String,
+    val description: String
+)
+
+@Serializable
+data class UpdateTeamRequest(
+    @SerialName("project_id") val projectId: String,
+    @SerialName("team_id") val teamId: Int,
+    val name: String,
+    val description: String
+)
+
+@Serializable
+data class RemoveTeamRequest(
+    @SerialName("project_id") val projectId: String,
+    @SerialName("team_id") val teamId: Int
 )
 
 @Serializable
