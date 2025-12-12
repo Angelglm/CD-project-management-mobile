@@ -206,13 +206,24 @@ fun TaskDetailContent(
         if (userRole == "1" || userRole == "2") {
             Spacer(Modifier.height(16.dp))
             val currentStatus = mapApiStatusToTaskStatus(task.status)
-            if (currentStatus != TaskStatus.DONE) {
-                Button(
-                    onClick = { onUpdateStatus("3") },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text("Marcar como Completada")
+            when (currentStatus) {
+                TaskStatus.TODO -> {
+                    Button(
+                        onClick = { onUpdateStatus("2") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Mover a In Progress")
+                    }
                 }
+                TaskStatus.IN_PROGRESS -> {
+                    Button(
+                        onClick = { onUpdateStatus("3") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Marcar como Completada")
+                    }
+                }
+                TaskStatus.DONE -> Unit
             }
         }
     }

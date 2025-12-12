@@ -103,7 +103,7 @@ fun KanbanScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues),
-            contentAlignment = Alignment.Center
+            contentAlignment = Alignment.TopCenter
         ) {
             when (uiState) {
                 is KanbanUiState.Loading -> {
@@ -136,6 +136,7 @@ fun KanbanView(
             .fillMaxSize()
             .padding(contentPadding)
             .padding(horizontal = 16.dp)
+            .padding(top = 4.dp)
             .horizontalScroll(scrollState)
     ) {
         val tasksByStatus = tasks.groupBy { it.status }
@@ -173,7 +174,7 @@ private fun mapTaskStatusToApiStatus(status: TaskStatus): String {
 fun KanbanColumn(status: TaskStatus, tasks: List<ApiTask>, onTaskClick: (ApiTask) -> Unit) {
     Column(modifier = Modifier.width(280.dp)) {
         Text(text = status.title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             items(tasks) { task ->
                 TaskCard(task = task, onTaskClick = onTaskClick)
@@ -202,12 +203,16 @@ fun TaskCard(task: ApiTask, onTaskClick: (ApiTask) -> Unit) {
             }
             Spacer(modifier = Modifier.width(8.dp))
             val status = mapApiStatusToTaskStatus(task.status)
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(status.color)
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(status.color)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = status.title, fontSize = 12.sp, color = Color.Gray)
+            }
         }
     }
 }

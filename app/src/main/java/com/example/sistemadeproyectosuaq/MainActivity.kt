@@ -33,6 +33,7 @@ import com.example.sistemadeproyectosuaq.ui.kanban.KanbanScreen
 import com.example.sistemadeproyectosuaq.ui.kanban.TaskDetail
 import com.example.sistemadeproyectosuaq.ui.login.LoginScreen
 import com.example.sistemadeproyectosuaq.ui.profile.UserAdminScreen
+import com.example.sistemadeproyectosuaq.ui.profile.UserProfileScreen
 import com.example.sistemadeproyectosuaq.ui.projects.ProjectListScreen
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
@@ -70,7 +71,7 @@ fun SistemaDeProyectosUAQApp() {
     }
 
     if (userRole != null) {
-        val availableDestinations = if (userRole == "1") { // Admin role
+        val availableDestinations = if (userRole == "1") {
             AppDestinations.entries
         } else {
             AppDestinations.entries.filter { !it.isAdminOnly }
@@ -187,10 +188,17 @@ fun SistemaDeProyectosUAQApp() {
                     }
 
                     AppDestinations.PROFILE -> {
-                        UserAdminScreen(
-                            onNavigateBack = { currentDestination = AppDestinations.HOME },
-                            onLogout = onLogout
-                        )
+                        if (userRole == "1") {
+                            UserAdminScreen(
+                                onNavigateBack = { currentDestination = AppDestinations.HOME },
+                                onLogout = onLogout
+                            )
+                        } else {
+                            UserProfileScreen(
+                                onNavigateBack = { currentDestination = AppDestinations.HOME },
+                                onLogout = onLogout
+                            )
+                        }
                     }
                 }
             }
@@ -210,5 +218,5 @@ enum class AppDestinations(
     HOME("Home", Icons.Default.Home),
 
     ADD_PROJECT("Add Project", Icons.Default.Add, true),
-    PROFILE("Profile", Icons.Default.AccountBox, true),
+    PROFILE("Profile", Icons.Default.AccountBox, false),
 }

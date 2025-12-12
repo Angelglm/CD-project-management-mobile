@@ -62,7 +62,9 @@ fun ProjectListScreen(
         viewModel.fetchProjects()
     }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+    Box(modifier = Modifier
+        .fillMaxSize()
+        .padding(top = 16.dp)) {
         when (uiState) {
             is ProjectListUiState.Loading -> {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -75,7 +77,9 @@ fun ProjectListScreen(
                 }
             }
             is ProjectListUiState.Success -> {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp)) {
                     items(uiState.projects) { project ->
                         ProjectListItem(
                             project = project,
