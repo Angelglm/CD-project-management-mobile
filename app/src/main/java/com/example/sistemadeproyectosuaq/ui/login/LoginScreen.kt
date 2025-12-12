@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,11 +24,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+
 
 @Composable
 fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: LoginViewModel = viewModel()) {
@@ -35,10 +43,24 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
     var password by remember { mutableStateOf("") }
     val uiState = loginViewModel.uiState
 
+    // Validaciones locales para email y contraseña
+    var emailError by remember { mutableStateOf("") }
+
+    // Estados para el toggle de contraseña
+    var passwordVisible by remember { mutableStateOf(false) }
+    val visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation()
+
+    // Expresión regular para validar el correo electrónico
+    fun isEmailValid(email: String): Boolean {
+        val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+        return email.matches(Regex(emailPattern))
+    }
+
+    // Gestionar la navegación tras un inicio de sesión exitoso
     LaunchedEffect(uiState) {
         if (uiState is LoginUiState.Success) {
             onLoginSuccess(uiState.data)
-            loginViewModel.resetState()
+            loginViewModel.resetState() // Reset state after navigation
         }
     }
 
@@ -49,44 +71,64 @@ fun LoginScreen(onLoginSuccess: (LoginSuccessData) -> Unit, loginViewModel: Logi
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(text = "INICIO DE SESION")
+        Text(text = "INICIO DE SESIÓN",
+            style = MaterialTheme.typography.titleLarge
+            )
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Email input
+        // Email input con validación
         OutlinedTextField(
             value = email,
-            onValueChange = { email = it },
-            label = { Text("Correo Electronico o usuario") }
+            onValueChange = { 
+                email = it 
+                emailError = if (isEmailValid(it)) "" else "Correo electrónico no válido"
+            },
+            label = { Text("Correo Electronico o usuario") },
+            isError = emailError.isNotEmpty()
         )
+        if (emailError.isNotEmpty()) {
+            Text(text = emailError, color = Color.Red, fontSize = 12.sp)
+        }
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Password input
+        // Password input 
         OutlinedTextField(
             value = password,
             onValueChange = { password = it },
             label = { Text("Contraseña") },
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
+            visualTransformation = visualTransformation,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                val image = if (passwordVisible)
+                    Icons.Filled.Visibility
+                else
+                    Icons.Filled.VisibilityOff
+                val description = if (passwordVisible) "Ocultar contraseña" else "Mostrar contraseña"
+
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                    Icon(imageVector = image, contentDescription = description)
+                }
+            }
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        val isLoading = uiState is LoginUiState.Loading
-
-        Button(
-            onClick = {
-                loginViewModel.login(email.trim(), password.trim())
-            },
-            colors = ButtonDefaults.buttonColors(
-                containerColor = Color(0xFF061B2E)
-            ),
-            enabled = !isLoading
-        ) {
-            Text("INICIAR")
-        }
-
-        if (isLoading) {
-            Spacer(modifier = Modifier.height(16.dp))
+        if (uiState is LoginUiState.Loading) {
             CircularProgressIndicator()
+        } else {
+            Button(
+                onClick = { 
+                    if (emailError.isEmpty()) {
+                        loginViewModel.login(email.trim(), password.trim()) // Trim whitespace
+                    }
+                }, 
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF061B2E),
+                    contentColor = Color.White
+                ),
+                enabled = emailError.isEmpty()
+            ) {
+                Text("INICIAR")
+            }
         }
 
         if (uiState is LoginUiState.Error) {
