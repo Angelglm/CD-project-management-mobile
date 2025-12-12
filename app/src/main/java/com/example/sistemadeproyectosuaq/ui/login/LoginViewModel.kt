@@ -26,21 +26,9 @@ class LoginViewModel : ViewModel() {
     var uiState: LoginUiState by mutableStateOf(LoginUiState.Idle)
         private set
 
-    // Expresión regular para validar el correo electrónico
-    private fun isEmailValid(email: String): Boolean {
-        val emailPattern = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
-        return email.matches(Regex(emailPattern))
-    }
-
     fun login(email: String, password: String) {
-        // Validación de los inputs
         if (email.isBlank() || password.isBlank()) {
             uiState = LoginUiState.Error("Por favor, ingresa tu correo y contraseña.")
-            return
-        }
-
-        if (!isEmailValid(email)) {
-            uiState = LoginUiState.Error("Correo electrónico no válido.")
             return
         }
 
@@ -49,12 +37,16 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             uiState = LoginUiState.Loading
             try {
+                Log.d("LoginViewModel", "Attempting login for: $email")
                 val loginResponse = ApiClient.service.login(LoginRequest(email, password))
+                Log.d("LoginViewModel", "Login response: $loginResponse")
 
+                Log.d("LoginViewModel", "Attempting to get token with key: ${loginResponse.userKey}")
                 val tokenResponse = ApiClient.service.getToken(loginResponse.userKey)
+                Log.d("LoginViewModel", "Token response: $tokenResponse")
 
-                // Guardar el token
                 SessionManager.onLoginSuccess(tokenResponse.token)
+                Log.d("LoginViewModel", "Token saved successfully.")
 
                 val successData = LoginSuccessData(
                     userId = loginResponse.userID,
@@ -63,9 +55,11 @@ class LoginViewModel : ViewModel() {
                     tempPassword = loginResponse.tempPassword
                 )
                 uiState = LoginUiState.Success(successData)
+                Log.d("LoginViewModel", "Login successful. State updated.")
 
             } catch (e: HttpException) {
-                // Tratar los errores 400 y 401 como credenciales inválidas
+                val errorBody = e.response()?.errorBody()?.string()
+                Log.e("LoginViewModel", "HttpException: ${e.code()} - $errorBody", e)
                 val errorMessage = if (e.code() == 401 || e.code() == 400) {
                     "Credenciales inválidas"
                 } else {
@@ -73,11 +67,11 @@ class LoginViewModel : ViewModel() {
                 }
                 uiState = LoginUiState.Error(errorMessage)
             } catch (e: SerializationException) {
-                Log.e("LoginViewModel", "Error de serialización", e)
+                Log.e("LoginViewModel", "SerializationException", e)
                 uiState = LoginUiState.Error("Error en los datos recibidos del servidor.")
             } catch (e: Exception) {
-                Log.e("LoginViewModel", "Error genérico de red", e)
-                uiState = LoginUiState.Error("Error de conexión. Revisa tu internet.") // 
+                Log.e("LoginViewModel", "Generic network error", e)
+                uiState = LoginUiState.Error("Error de conexión. Revisa tu internet.")
             }
         }
     }

@@ -6,10 +6,11 @@ import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -18,11 +19,22 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -33,87 +45,136 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.sistemadeproyectosuaq.data.network.ApiTask
+import com.example.sistemadeproyectosuaq.data.network.Project
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
 enum class TaskStatus(val title: String, val color: Color) {
     TODO("TO DO", Color.Red),
-    IN_PROGRESS("IN PROGRESS", Color(0xFFFFA500)), // Orange
+    IN_PROGRESS("IN PROGRESS", Color(0xFFFFA500)),
     DONE("DONE", Color.Green)
 }
 
-data class Task(val id: Int, val title: String, val description: String, val status: TaskStatus)
-
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun KanbanScreen(
-    onTaskClick: (Task) -> Unit,
+    modifier: Modifier = Modifier,
+    project: Project,
+    userRole: String,
+    onTaskClick: (ApiTask) -> Unit,
+    onAddTaskClick: () -> Unit,
+    onAddModuleClick: () -> Unit = {},
+    onNavigateBack: () -> Unit,
+    refreshKey: Int = 0,
     viewModel: KanbanViewModel = viewModel()
 ) {
+    LaunchedEffect(project, refreshKey) {
+        viewModel.fetchTasksForProject(project)
+    }
+
     val uiState = viewModel.uiState
 
-    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        when (uiState) {
-            is KanbanUiState.Loading -> {
-                CircularProgressIndicator()
+    Scaffold(
+        modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(project.name) },
+                navigationIcon = {
+                    IconButton(onClick = onNavigateBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back to Projects")
+                    }
+                }
+            )
+        },
+        floatingActionButton = {
+            if (userRole == "1") {
+                Column(horizontalAlignment = Alignment.End) {
+                    FloatingActionButton(onClick = onAddModuleClick) {
+                        Icon(Icons.Default.Info, contentDescription = "Add Module")
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
+                    FloatingActionButton(onClick = onAddTaskClick) {
+                        Icon(Icons.Default.Add, contentDescription = "Add Task")
+                    }
+                }
             }
-            is KanbanUiState.Error -> {
-                Text(text = uiState.message, color = Color.Red)
-            }
-            is KanbanUiState.Success -> {
-                val projectName = uiState.data.project.name
-                val tasks = uiState.data.tasks.map { mapApiTaskToTask(it) }
-                KanbanView(projectName = projectName, tasks = tasks, onTaskClick = onTaskClick)
+        }
+    ) { paddingValues ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            when (uiState) {
+                is KanbanUiState.Loading -> {
+                    CircularProgressIndicator()
+                }
+                is KanbanUiState.Error -> {
+                    Text(text = uiState.message, color = Color.Red)
+                }
+                is KanbanUiState.Success -> {
+                    KanbanView(
+                        tasks = uiState.data.tasks,
+                        onTaskClick = onTaskClick,
+                        contentPadding = paddingValues
+                    )
+                }
             }
         }
     }
 }
 
 @Composable
-fun KanbanView(projectName: String, tasks: List<Task>, onTaskClick: (Task) -> Unit) {
+fun KanbanView(
+    tasks: List<ApiTask>,
+    onTaskClick: (ApiTask) -> Unit,
+    contentPadding: PaddingValues = PaddingValues(0.dp)
+) {
     val scrollState = rememberScrollState()
+    Row(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(contentPadding)
+            .padding(horizontal = 16.dp)
+            .padding(top = 4.dp)
+            .horizontalScroll(scrollState)
+    ) {
+        val tasksByStatus = tasks.groupBy { it.status }
 
-    Column(modifier = Modifier
-        .fillMaxSize()
-        .padding(16.dp)) {
-        Text(
-            text = projectName,
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(top = 20.dp)
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Row(modifier = Modifier.horizontalScroll(scrollState)) {
-            TaskStatus.entries.forEach { status ->
-                KanbanColumn(
-                    status = status,
-                    tasks = tasks.filter { it.status == status },
-                    onTaskClick = onTaskClick
-                )
-                Spacer(modifier = Modifier.width(16.dp))
-            }
+        TaskStatus.entries.forEach { status ->
+            val apiStatus = mapTaskStatusToApiStatus(status)
+            KanbanColumn(
+                status = status,
+                tasks = tasksByStatus[apiStatus] ?: emptyList(),
+                onTaskClick = onTaskClick
+            )
+            Spacer(modifier = Modifier.width(16.dp))
         }
     }
 }
 
-private fun mapApiTaskToTask(apiTask: ApiTask): Task {
-    val status = when (apiTask.status) {
+private fun mapApiStatusToTaskStatus(apiStatus: String): TaskStatus {
+    return when (apiStatus) {
         "1" -> TaskStatus.TODO
         "2" -> TaskStatus.IN_PROGRESS
         "3" -> TaskStatus.DONE
-        else -> TaskStatus.TODO // Default case
+        else -> TaskStatus.TODO
     }
-    return Task(
-        id = apiTask.id,
-        title = apiTask.title,
-        description = apiTask.description,
-        status = status
-    )
+}
+
+private fun mapTaskStatusToApiStatus(status: TaskStatus): String {
+    return when (status) {
+        TaskStatus.TODO -> "1"
+        TaskStatus.IN_PROGRESS -> "2"
+        TaskStatus.DONE -> "3"
+    }
 }
 
 @Composable
-fun KanbanColumn(status: TaskStatus, tasks: List<Task>, onTaskClick: (Task) -> Unit) {
+fun KanbanColumn(status: TaskStatus, tasks: List<ApiTask>, onTaskClick: (ApiTask) -> Unit) {
     Column(modifier = Modifier.width(280.dp)) {
         Text(text = status.title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(2.dp))
         LazyColumn(modifier = Modifier.fillMaxHeight()) {
             items(tasks) { task ->
                 TaskCard(task = task, onTaskClick = onTaskClick)
@@ -124,7 +185,7 @@ fun KanbanColumn(status: TaskStatus, tasks: List<Task>, onTaskClick: (Task) -> U
 }
 
 @Composable
-fun TaskCard(task: Task, onTaskClick: (Task) -> Unit) {
+fun TaskCard(task: ApiTask, onTaskClick: (ApiTask) -> Unit) {
     Card(
         modifier = Modifier
             .width(280.dp)
@@ -141,12 +202,17 @@ fun TaskCard(task: Task, onTaskClick: (Task) -> Unit) {
                 Text(text = task.description)
             }
             Spacer(modifier = Modifier.width(8.dp))
-            Box(
-                modifier = Modifier
-                    .size(12.dp)
-                    .clip(CircleShape)
-                    .background(task.status.color)
-            )
+            val status = mapApiStatusToTaskStatus(task.status)
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(12.dp)
+                        .clip(CircleShape)
+                        .background(status.color)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(text = status.title, fontSize = 12.sp, color = Color.Gray)
+            }
         }
     }
 }
@@ -155,6 +221,13 @@ fun TaskCard(task: Task, onTaskClick: (Task) -> Unit) {
 @Composable
 fun KanbanScreenPreview() {
     SistemaDeProyectosUAQTheme {
-        KanbanView(projectName = "PREVIEW PROJECT", tasks = listOf(), onTaskClick = {})
+        val project = Project("1", "Preview Project", "Description", "", "")
+        KanbanScreen(
+            project = project,
+            userRole = "1",
+            onTaskClick = { _ -> },
+            onAddTaskClick = {},
+            onNavigateBack = {}
+        )
     }
 }

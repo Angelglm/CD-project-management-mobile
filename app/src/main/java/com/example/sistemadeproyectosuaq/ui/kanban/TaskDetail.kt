@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -14,17 +15,19 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -37,24 +40,27 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.sistemadeproyectosuaq.data.network.ApiTask
 import com.example.sistemadeproyectosuaq.ui.theme.SistemaDeProyectosUAQTheme
 
-// Mock data - replace with ViewModel data later
-data class User(val id: Int, val name: String)
 data class Comment(val id: Int, val author: String, val text: String)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun TaskDetail(taskId: Int, onNavigateBack: () -> Unit) {
-    // In a real app, you'd fetch this from a ViewModel based on taskId
-    val task = Task(taskId, "NOMBRE DE LA TAREA", "Descripcion", TaskStatus.IN_PROGRESS)
-    val users = listOf(User(1, "Usuario 1"), User(2, "usuario 2"), User(3, "Usuario 3"))
-    val initialComments = listOf(
-        Comment(1, "Usuario 1", "Lorem Ipsum is simply dummy text of the printing and typesetting industry"),
-        Comment(2, "Usuario 2", "Lorem Ipsum is simply dummy text of the printing and typesetting industry")
-    )
-    var comments by remember { mutableStateOf(initialComments) }
-    var newCommentText by remember { mutableStateOf("") }
+fun TaskDetail(
+    userRole: String,
+    projectId: String,
+    moduleId: String,
+    taskId: Int,
+    onNavigateBack: () -> Unit,
+    viewModel: TaskDetailViewModel = viewModel()
+) {
+    LaunchedEffect(taskId) {
+        viewModel.fetchTask(projectId, moduleId, taskId)
+    }
+
+    val uiState = viewModel.uiState
 
     Scaffold(
         topBar = {
@@ -62,78 +68,174 @@ fun TaskDetail(taskId: Int, onNavigateBack: () -> Unit) {
                 title = { Text("Detalles Tarea") },
                 navigationIcon = {
                     IconButton(onClick = onNavigateBack) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
+                        )
+                    }
+                },
+                actions = {
+                    if (userRole == "1") {
+                        IconButton(onClick = {
+                        }) {
+                            Icon(
+                                Icons.Default.Delete,
+                                contentDescription = "Delete Task"
+                            )
+                        }
                     }
                 }
             )
         }
     ) { paddingValues ->
-        Column(modifier = Modifier
-            .padding(paddingValues)
-            .padding(16.dp)) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues),
+            contentAlignment = Alignment.Center
+        ) {
+            when (uiState) {
+                is TaskDetailUiState.Loading -> {
+                    CircularProgressIndicator()
+                }
 
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(text = task.title, fontSize = 24.sp, fontWeight = FontWeight.Bold, modifier = Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(12.dp)
-                        .clip(CircleShape)
-                        .background(task.status.color)
-                )
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+                is TaskDetailUiState.Error -> {
+                    Text(text = uiState.message, color = Color.Red)
+                }
 
-            Text("PROGRESO")
-            LinearProgressIndicator(progress = { 0.6f }, modifier = Modifier.fillMaxWidth())
-            Text("60%", modifier = Modifier.align(Alignment.End))
-            Spacer(modifier = Modifier.height(8.dp))
-
-            Text("Fecha limite: xx/xx/xxxx")
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text("Usuarios asignados:")
-            users.forEach { user ->
-                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(vertical = 2.dp)) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .background(Color.Gray, CircleShape)
+                is TaskDetailUiState.Success -> {
+                    TaskDetailContent(
+                        task = uiState.task,
+                        userRole = userRole,
+                        onUpdateStatus = { newStatus ->
+                            viewModel.updateTaskStatus(
+                                projectId,
+                                moduleId,
+                                uiState.task,
+                                newStatus
+                            )
+                        }
                     )
-                    Spacer(Modifier.width(8.dp))
-                    Text(user.name)
                 }
-            }
-            Spacer(modifier = Modifier.height(16.dp))
 
-            Text("Comentarios:")
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)) {
-                comments.forEach { comment ->
-                    Text("${comment.author}: ${comment.text}", style = MaterialTheme.typography.bodySmall)
-                    Spacer(modifier = Modifier.height(4.dp))
-                }
-            }
-            OutlinedTextField(
-                value = newCommentText,
-                onValueChange = { newCommentText = it },
-                label = { Text("Añadir comentario") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(Modifier.height(8.dp))
-            Button(
-                onClick = {
-                    if (newCommentText.isNotBlank()) {
-                        val newId = (comments.maxOfOrNull { it.id } ?: 0) + 1
-                        comments = comments + Comment(id = newId, author = "Tú", text = newCommentText)
-                        newCommentText = ""
+                TaskDetailUiState.TaskDeleted -> {
+                    LaunchedEffect(Unit) {
+                        onNavigateBack()
                     }
-                },
-                modifier = Modifier.align(Alignment.CenterHorizontally)
-            ) {
-                Text("Añadir")
+                }
             }
         }
+    }
+}
+
+@Composable
+fun TaskDetailContent(
+    task: ApiTask,
+    userRole: String,
+    onUpdateStatus: (String) -> Unit
+) {
+    var newCommentText by remember { mutableStateOf("") }
+    var comments by remember { mutableStateOf(emptyList<Comment>()) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = task.title,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.weight(1f)
+            )
+            val status = mapApiStatusToTaskStatus(task.status)
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .clip(CircleShape)
+                    .background(status.color)
+            )
+        }
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text(task.description)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Text("Comentarios:")
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+        ) {
+            comments.forEach { comment ->
+                Text(
+                    "${comment.author}: ${comment.text}",
+                    style = MaterialTheme.typography.bodySmall
+                )
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+        }
+
+        OutlinedTextField(
+            value = newCommentText,
+            onValueChange = { newCommentText = it },
+            label = { Text("Añadir comentario") },
+            modifier = Modifier.fillMaxWidth()
+        )
+        Spacer(Modifier.height(8.dp))
+
+        Button(
+            onClick = {
+                if (newCommentText.isNotBlank()) {
+                    val newId = (comments.maxOfOrNull { it.id } ?: 0) + 1
+                    comments = comments + Comment(
+                        id = newId,
+                        author = "Tú",
+                        text = newCommentText
+                    )
+                    newCommentText = ""
+                }
+            },
+            modifier = Modifier.align(Alignment.CenterHorizontally)
+        ) {
+            Text("Añadir")
+        }
+
+        if (userRole == "1" || userRole == "2") {
+            Spacer(Modifier.height(16.dp))
+            val currentStatus = mapApiStatusToTaskStatus(task.status)
+            when (currentStatus) {
+                TaskStatus.TODO -> {
+                    Button(
+                        onClick = { onUpdateStatus("2") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Mover a In Progress")
+                    }
+                }
+                TaskStatus.IN_PROGRESS -> {
+                    Button(
+                        onClick = { onUpdateStatus("3") },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Marcar como Completada")
+                    }
+                }
+                TaskStatus.DONE -> Unit
+            }
+        }
+    }
+}
+
+
+private fun mapApiStatusToTaskStatus(apiStatus: String): TaskStatus {
+    return when (apiStatus) {
+        "1" -> TaskStatus.TODO
+        "2" -> TaskStatus.IN_PROGRESS
+        "3" -> TaskStatus.DONE
+        else -> TaskStatus.TODO
     }
 }
 
@@ -141,6 +243,17 @@ fun TaskDetail(taskId: Int, onNavigateBack: () -> Unit) {
 @Composable
 fun TaskDetailPreview() {
     SistemaDeProyectosUAQTheme {
-        TaskDetail(taskId = 1, onNavigateBack = {})
+        TaskDetailContent(
+            task = ApiTask(
+                id = 1,
+                title = "Preview Task",
+                description = "Descripción de prueba",
+                priority = "1",
+                status = "1",
+                user_ids = 1
+            ),
+            userRole = "1",
+            onUpdateStatus = {}
+        )
     }
 }
